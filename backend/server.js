@@ -10,6 +10,37 @@ app.use(cors());
 app.use(express.json());
 
 const hf = new HfInference(process.env.HF_TOKEN); // ดึงจาก process.env
+// Mock Data
+let todos = [
+    { id: 1, text: 'ทดสอบระบบ AI', completed: false },
+    { id: 2, text: 'เตรียมสอบพนักงานมหาวิทยาลัย', completed: false }
+];
+
+// READ: ดึงข้อมูลทั้งหมด
+app.get('/api/todos', (req, res) => res.json(todos));
+
+// CREATE: เพิ่มข้อมูล
+app.post('/api/todos', (req, res) => {
+    const newTodo = { id: Date.now(), text: req.body.text, completed: false };
+    todos.push(newTodo);
+    res.json(newTodo);
+});
+
+app.put('/api/todos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = todos.findIndex(t => t.id === id);
+    if (index !== -1) {
+        todos[index].text = req.body.text;
+        res.json(todos[index]);
+    } else {
+        res.status(404).json({ message: 'Not found' });
+    }
+})
+// DELETE: ลบข้อมูล
+app.delete('/api/todos/:id', (req, res) => {
+    todos = todos.filter(t => t.id !== parseInt(req.params.id));
+    res.json({ message: 'Deleted' });
+});
 
 app.post('/api/classify', async (req, res) => {
     const { text } = req.body;
